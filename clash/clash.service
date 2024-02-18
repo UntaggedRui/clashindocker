@@ -1,0 +1,15 @@
+[Unit]
+Description=clash_proxy
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+WorkingDirectory=/home/rui/web/clashindocker/clash
+ExecStartPre=/bin/sh -c 'echo 1 > /proc/sys/net/ipv4/ip_forward'
+ExecStart=/home/rui/web/clashindocker/clash/clash -d /home/rui/web/clashindocker/clash -f /home/rui/web/clashindocker/config.yml
+LimitNOFILE=100000
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
