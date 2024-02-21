@@ -4,6 +4,8 @@
 | --- | --- | --- |
 | docker+macvlan+iptables | 1. 对系统入侵性小 <br>2. 便于迁移 | 1. 根据网友的热心提示,只能代理TCP <br>2. 宿主机的流量没有经过代理 |
 | clash tun模式 | 代理所有流量(TCP+UDP)  | 在本地会生成一些配置文件但是在指定位置 |
+
+以下方法仅在X86设备上测试过,其他设备请自行测试.
 # 方式一: docker+macvlan+iptables
 ## 前言
 软路由，openwrt，是老生常谈的内容了。但是我更加喜欢all in one，而且不喜欢用虚拟机。每次装openwrt的主要目的也只是使用其中的clash。所以我就干脆直接用docker+clash来充当软路由的功能了。其中使用到的主要工具是docker,macvlan,clash(mihomo),iptables.

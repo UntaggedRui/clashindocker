@@ -58,10 +58,13 @@ global-client-fingerprint: chrome
 
 profile:
   store-selected: true
-  store-fake-ip: true
+  store-fake-ip: false
 
 sniffer:
   enable: true
+  skip-domain:
+    - 'Mijia Cloud'
+    - 'dlg.io.mi.com'
   sniff:
     TLS:
       ports: [443, 8443]
