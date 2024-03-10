@@ -12,6 +12,7 @@ services:
                 dockerfile: Dockerfile
         volumes:
             - './config.yml:/opt/clash/config.yml'
+            - './clash/clash:/opt/clash/clash'
 networks:
         macnet:
                 external: true
