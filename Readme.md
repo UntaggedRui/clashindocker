@@ -6,6 +6,10 @@
 | clash tun模式 | 代理所有流量(TCP+UDP)  | 在本地会生成一些配置文件但是在指定位置 |
 
 以下方法仅在X86设备上测试过,其他设备请自行测试.
+
+**推荐使用方式二,对IPV6的配制更好,并且方便宿主机的网络代理.**
+
+虽然项目名字写着在docker中使用clash,但是最近发现使用systemd直接运行clash使用tun的方式更加实用.
 # 方式一: docker+macvlan+iptables
 ## 前言
 软路由，openwrt，是老生常谈的内容了。但是我更加喜欢all in one，而且不喜欢用虚拟机。每次装openwrt的主要目的也只是使用其中的clash。所以我就干脆直接用docker+clash来充当软路由的功能了。其中使用到的主要工具是docker,macvlan,clash(mihomo),iptables.
@@ -73,17 +77,19 @@ docker compose up -d
 7. 可以不看的说明. [example.yml](./example.yml)中使用`proxy-provider`和`rule-providers`来实现远端配置. 示例中是两个机场的情况.如果只有一个机场,删除其中一个和下面`proxy-groups`对应的部分即可.这个配置文件中需要注意以下几点.
 
 + 配置`redir-port`来让clash能够处理请求.
-```yaml
-redir-port: 7892 
-```
+    ```yaml
+    redir-port: 7892 
+    ```
 
 + 配置web管理配合metacubexd来进行网页管理.
-```yaml
-external-controller: '0.0.0.0:9090'
-external-ui: ui
-# RESTful API 的口令
-secret: 'yourpassword'
-```
+    ```yaml
+    external-controller: '0.0.0.0:9090'
+    external-ui: ui
+    # RESTful API 的口令
+    secret: 'yourpassword'
+    ```
+8. 可以通过web界面更新内核,使用clash(mihomo_alpha)的最新版本.
+    ![更新内核](./img/更新内核.png)
 
 如果有无法使用的欢迎在issue中讨论.
 
@@ -93,29 +99,36 @@ secret: 'yourpassword'
 
 ## 准备工作
 1. 获取代码
-```bash
-git clone https://github.com/UntaggedRui/clashindocker
-cd clashindocker
-cp example.yml config.yml
-```
+    ```bash
+    git clone https://github.com/UntaggedRui/clashindocker
+    cd clashindocker
+    cp example.yml config.yml
+    ```
 
 2. 更改`config.yml`中的配置. 开启tun模式,将tun的`enable`设置为`true`(第95行). 设置`proxy-provider`的`url`为你的机场订阅地址.
 
 
 3. 将clash注册为系统服务方便管理. 修改`clash.service`中的`WorkingDirectory`和`ExecStart`中的路径,指向正确的位置.然后将`clash.service`放到`/lib/systemd/system/`中.然后执行如下指定,设置clash开机自启,并立即起动服务.
-```bash
-sudo systemctl enable clash --now
-```
+    ```bash
+    sudo systemctl enable clash --now
+    ```
+    对于启动和关闭与常规的服务方式一样.
+
+    ```bash
+    sudo systemctl start clash
+    sudo systemctl stop clash
+    sudo systemctl restart clash
+    ```
 
 4. 查看clash的运行状态,此时本机流量应该是通过clash代理的.
-```bash
-sudo journalctl -u clash -f
-```
+    ```bash
+    sudo journalctl -u clash -f
+    ```
 
 5. 在同一个局域网下,将其他机器的网关设置为你的机器的ip地址就可以实现该机器的所有流量都经过clash,并且根据clash的规则进行分流. 为了让DNS劫持生效，设备的DNS不能设置为局域网地址，需要是公网地址或者198.18.0.1，详见官方的描述：
-> Since tun.auto-route does not intercept LAN traffic, if your system DNS is set to servers in private subnets, DNS hijack will not work. You can either:
-> + Use a non-private DNS server as your system DNS like 1.1.1.1
-> + Or manually set up your system DNS to the Clash DNS (by default, 198.18.0.1)
+    > Since tun.auto-route does not intercept LAN traffic, if your system DNS is set to servers in private subnets, DNS hijack will not work. You can either:
+    > + Use a non-private DNS server as your system DNS like 1.1.1.1
+    > + Or manually set up your system DNS to the Clash DNS (by default, 198.18.0.1)
 
 关于DNS的配置参考了[这篇文章](https://www.arloor.com/posts/clash-tun-gateway/).
 
@@ -128,3 +141,5 @@ sudo iptables -P FORWARD ACCEPT
 sudo iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
 ```
 我不会`iptables`这个东西,很难受.
+
+7. 内核更新参考方式一中的第8步.
